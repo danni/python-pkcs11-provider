@@ -1,49 +1,120 @@
 from __future__ import (absolute_import, unicode_literals,
                         print_function, division)
+
+import logging
+
+from libc.string cimport strncpy
 from .types cimport *
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 cdef public CK_RV _C_Initialize(void *flags):
-    print("Initialize")
+    try:
+        print("Initialize")
+    except:
+        LOGGER.exception("Unhandled exception")
+        return CKR_FUNCTION_FAILED
 
 
 cdef public CK_RV _C_Finalize(void *flags):
-    print("Finalize")
+    try:
+        print("Finalize")
+    except:
+        LOGGER.exception("Unhandled exception")
+        return CKR_FUNCTION_FAILED
 
 
 cdef public CK_RV C_GetInfo(CK_INFO *info):
-    pass
+    try:
+        info.cryptokiVersion.major = 2
+        info.cryptokiVersion.minor = 4
+
+        strncpy(<char *> &info.manufacturerID[0],
+                "python-pkcs11-provider"
+                .ljust(sizeof(info.manufacturerID))
+                .encode('utf-8'),
+                sizeof(info.manufacturerID))
+
+        info.flags = 0
+
+        strncpy(<char *> &info.libraryDescription[0],
+                "PKCS #11 provider for Python"
+                .ljust(sizeof(info.libraryDescription))
+                .encode('utf-8'),
+                sizeof(info.libraryDescription))
+
+        info.libraryVersion.major = 0
+        info.libraryVersion.minor = 1
+    except:
+        LOGGER.exception("Unhandled exception")
+        return CKR_FUNCTION_FAILED
 
 
 cdef public CK_RV C_GetSlotList(CK_BBOOL tokenPresent,
-                                CK_SLOT_ID *slotList,
+                                CK_SLOT_ID *slots,
                                 CK_ULONG *count):
-    pass
+    try:
+        if slots == NULL:
+            count[0] = 1
+
+        else:
+            assert count[0] == 1
+
+            slots[0] = 1234
+    except:
+        LOGGER.exception("Unhandled exception")
+        return CKR_FUNCTION_FAILED
 
 # Slot Methods
-cdef public CK_RV C_GetSlotInfo(CK_SLOT_ID slotID,
+cdef public CK_RV C_GetSlotInfo(CK_SLOT_ID slot,
                                 CK_SLOT_INFO *info):
-    pass
+    try:
+        assert slot == 1234
+
+        strncpy(<char *> &info.slotDescription[0],
+                "Slot 1234"
+                .ljust(sizeof(info.slotDescription))
+                .encode('utf-8'),
+                sizeof(info.slotDescription))
+
+        strncpy(<char *> &info.manufacturerID[0],
+                "boo"
+                .ljust(sizeof(info.manufacturerID))
+                .encode('utf-8'),
+                sizeof(info.manufacturerID))
+
+        info.flags = 0
+
+        info.hardwareVersion.major = 0
+        info.hardwareVersion.minor = 1
+
+        info.firmwareVersion.major = 0
+        info.firmwareVersion.minor = 1
+    except:
+        LOGGER.exception("Unhandled exception")
+        return CKR_FUNCTION_FAILED
 
 
-cdef public CK_RV C_GetTokenInfo(CK_SLOT_ID slotID,
+cdef public CK_RV C_GetTokenInfo(CK_SLOT_ID slot,
                                  CK_TOKEN_INFO *info):
     pass
 
 
-cdef public CK_RV C_GetMechanismList(CK_SLOT_ID slotID,
+cdef public CK_RV C_GetMechanismList(CK_SLOT_ID slot,
                                      CK_MECHANISM_TYPE *mechanismList,
                                      CK_ULONG *count):
     pass
 
 
-cdef public CK_RV C_GetMechanismInfo(CK_SLOT_ID slotID,
+cdef public CK_RV C_GetMechanismInfo(CK_SLOT_ID slot,
                                      CK_MECHANISM_TYPE mechanism,
                                      CK_MECHANISM_INFO *info):
     pass
 
 
-cdef public CK_RV C_OpenSession(CK_SLOT_ID slotID,
+cdef public CK_RV C_OpenSession(CK_SLOT_ID slot,
                                 CK_FLAGS flags,
                                 void *application,
                                 CK_RV (* notify)(CK_SESSION_HANDLE, CK_NOTIFICATION, void *),

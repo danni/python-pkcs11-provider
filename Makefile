@@ -23,7 +23,7 @@ SRC = \
 TARGET = python-pkcs11-provider.so
 
 %.c: %.pyx
-	$(CYTHON) -o $@ $<
+	$(CYTHON) -3 -o $@ $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
